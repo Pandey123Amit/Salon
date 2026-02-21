@@ -43,6 +43,25 @@ const OTP = {
 
 const SLOT_DURATIONS = [15, 30, 45, 60];
 
+const CONVERSATION_STATES = [
+  'greeting',
+  'intent_detection',
+  'service_selection',
+  'date_selection',
+  'slot_selection',
+  'confirmation',
+  'booking_complete',
+  'cancellation',
+  'faq',
+  'human_handoff',
+];
+
+const CHAT_CONFIG = {
+  maxToolCallIterations: 5,
+  maxMessagesInContext: 20,
+  sessionTimeoutMinutes: 30,
+};
+
 module.exports = {
   SERVICE_CATEGORIES,
   APPOINTMENT_STATUSES,
@@ -51,4 +70,6 @@ module.exports = {
   REGEX,
   OTP,
   SLOT_DURATIONS,
+  CONVERSATION_STATES,
+  CHAT_CONFIG,
 };

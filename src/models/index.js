@@ -4,6 +4,7 @@ const Staff = require('./Staff');
 const Appointment = require('./Appointment');
 const Customer = require('./Customer');
 const Offer = require('./Offer');
+const Conversation = require('./Conversation');
 
 module.exports = {
   Salon,
@@ -12,4 +13,5 @@ module.exports = {
   Appointment,
   Customer,
   Offer,
+  Conversation,
 };
