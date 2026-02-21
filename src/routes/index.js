@@ -8,5 +8,6 @@ router.use('/appointments', require('./appointment.routes'));
 router.use('/customers', require('./customer.routes'));
 router.use('/chat', require('./chat.routes'));
 router.use('/salon/whatsapp', require('./whatsapp-onboarding.routes'));
+router.use('/analytics', require('./analytics.routes'));
 
 module.exports = router;
