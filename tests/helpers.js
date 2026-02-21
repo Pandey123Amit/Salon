@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const { Salon, Service, Staff, Customer, Appointment, Offer, Conversation } = require('../src/models');
 const { DAYS_OF_WEEK } = require('../src/config/constants');
 
@@ -152,6 +153,50 @@ function authHeader(token) {
   return { Authorization: `Bearer ${token}` };
 }
 
+/**
+ * Build a valid Meta webhook payload envelope.
+ * @param {string} phoneNumberId - The salon's WhatsApp phone number ID
+ * @param {Object} message - The message object (type, text, from, id, timestamp, etc.)
+ * @param {Object} [options] - Optional overrides: { contacts, statuses }
+ */
+function buildWebhookPayload(phoneNumberId, message, options = {}) {
+  const value = {
+    messaging_product: 'whatsapp',
+    metadata: { phone_number_id: phoneNumberId, display_phone_number: '15551234567' },
+  };
+
+  if (options.statuses) {
+    value.statuses = options.statuses;
+  } else {
+    value.messages = [message];
+    value.contacts = options.contacts || [
+      { profile: { name: 'Test User' }, wa_id: message.from },
+    ];
+  }
+
+  return {
+    object: 'whatsapp_business_account',
+    entry: [
+      {
+        id: '123456789',
+        changes: [{ field: 'messages', value }],
+      },
+    ],
+  };
+}
+
+/**
+ * HMAC-SHA256 sign a body, returns the `sha256=...` header value.
+ * @param {Object|string} body - Request body (will be JSON.stringified if object)
+ * @param {string} secret - App secret for HMAC
+ * @returns {string} "sha256=<hex>"
+ */
+function signPayload(body, secret) {
+  const raw = typeof body === 'string' ? body : JSON.stringify(body);
+  const hmac = crypto.createHmac('sha256', secret).update(raw).digest('hex');
+  return `sha256=${hmac}`;
+}
+
 module.exports = {
   defaultSalonData,
   defaultServiceData,
@@ -166,4 +211,6 @@ module.exports = {
   createFullSetup,
   getNextWeekday,
   authHeader,
+  buildWebhookPayload,
+  signPayload,
 };
