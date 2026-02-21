@@ -90,11 +90,23 @@ const salonSchema = new mongoose.Schema(
     holidays: [{ type: Date }],
 
     isActive: { type: Boolean, default: true },
+
+    // WhatsApp Business integration
+    whatsapp: {
+      phoneNumberId: { type: String },
+      accessToken: { type: String, select: false },
+      verifyToken: { type: String, select: false },
+      isConnected: { type: Boolean, default: false },
+      connectedAt: { type: Date },
+    },
   },
   {
     timestamps: true,
   }
 );
+
+// Sparse unique index — only salons with a phoneNumberId get indexed
+salonSchema.index({ 'whatsapp.phoneNumberId': 1 }, { unique: true, sparse: true });
 
 // Hash password before save
 salonSchema.pre('save', async function (next) {
@@ -122,6 +134,10 @@ salonSchema.methods.toJSON = function () {
   delete obj.otp;
   delete obj.otpExpiry;
   delete obj.__v;
+  if (obj.whatsapp) {
+    delete obj.whatsapp.accessToken;
+    delete obj.whatsapp.verifyToken;
+  }
   return obj;
 };
 

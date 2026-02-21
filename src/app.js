@@ -9,6 +9,7 @@ const { generalLimiter } = require('./middleware/rateLimiter');
 const errorHandler = require('./middleware/errorHandler');
 const notFound = require('./middleware/notFound');
 const routes = require('./routes');
+const webhookRoutes = require('./routes/webhook.routes');
 const env = require('./config/env');
 
 const app = express();
@@ -18,6 +19,18 @@ app.use(helmet());
 
 // CORS
 app.use(cors());
+
+// Webhook routes — mounted BEFORE global JSON parser to capture raw body for signature verification
+app.use(
+  '/webhook',
+  express.json({
+    limit: '10kb',
+    verify: (req, _res, buf) => {
+      req.rawBody = buf;
+    },
+  }),
+  webhookRoutes
+);
 
 // Body parsing
 app.use(express.json({ limit: '10kb' }));

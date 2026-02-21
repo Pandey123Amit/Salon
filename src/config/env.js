@@ -22,6 +22,13 @@ module.exports = {
   authRateLimitMax: parseInt(process.env.AUTH_RATE_LIMIT_MAX, 10) || 10,
   openaiApiKey: process.env.OPENAI_API_KEY,
   openaiModel: process.env.OPENAI_MODEL || 'gpt-4o-mini',
+
+  // WhatsApp Meta Cloud API (all optional — server boots without them)
+  whatsappAppSecret: process.env.WHATSAPP_APP_SECRET || '',
+  whatsappVerifyToken: process.env.WHATSAPP_VERIFY_TOKEN || '',
+  whatsappEncryptionKey: process.env.WHATSAPP_ENCRYPTION_KEY || '',
+  baseUrl: process.env.BASE_URL || '',
+
   isDev: (process.env.NODE_ENV || 'development') === 'development',
   isProd: process.env.NODE_ENV === 'production',
 };
