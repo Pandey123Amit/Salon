@@ -35,8 +35,8 @@ const genders = ['male', 'female', 'unisex'] as const
 const serviceSchema = z.object({
   name: z.string().min(1, 'Name is required').max(100),
   category: z.enum(categories),
-  duration: z.number().min(5).max(480),
-  price: z.number().min(0),
+  duration: z.coerce.number().min(5).max(480),
+  price: z.coerce.number().min(0),
   description: z.string().max(500).optional(),
   gender: z.enum(genders),
 })
