@@ -6,6 +6,7 @@ const Customer = require('./Customer');
 const Offer = require('./Offer');
 const Conversation = require('./Conversation');
 const MessageLog = require('./MessageLog');
+const Payment = require('./Payment');
 
 module.exports = {
   Salon,
@@ -16,4 +17,5 @@ module.exports = {
   Offer,
   Conversation,
   MessageLog,
+  Payment,
 };

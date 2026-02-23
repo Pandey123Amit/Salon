@@ -13,3 +13,8 @@ process.env.AUTH_RATE_LIMIT_MAX = '10000';
 process.env.WHATSAPP_APP_SECRET = 'test-whatsapp-app-secret-for-hmac';
 process.env.WHATSAPP_VERIFY_TOKEN = 'test-verify-token-12345';
 process.env.WHATSAPP_ENCRYPTION_KEY = 'a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2';
+
+// Razorpay — Phase 6 test values
+process.env.RAZORPAY_KEY_ID = 'rzp_test_key_id_for_testing';
+process.env.RAZORPAY_KEY_SECRET = 'rzp_test_key_secret_for_testing';
+process.env.RAZORPAY_WEBHOOK_SECRET = 'rzp_test_webhook_secret';

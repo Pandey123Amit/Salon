@@ -1,5 +1,5 @@
 const { body } = require('express-validator');
-const { DAYS_OF_WEEK, GENDER_OPTIONS, SLOT_DURATIONS } = require('../config/constants');
+const { DAYS_OF_WEEK, GENDER_OPTIONS, SLOT_DURATIONS, PAYMENT_MODES } = require('../config/constants');
 
 const updateProfileRules = [
   body('name')
@@ -49,4 +49,46 @@ const updateSettingsRules = [
     .isISO8601().withMessage('Each holiday must be a valid date'),
 ];
 
-module.exports = { updateProfileRules, updateWorkingHoursRules, updateSettingsRules };
+const updatePaymentSettingsRules = [
+  body('razorpayKeyId')
+    .optional()
+    .trim()
+    .notEmpty().withMessage('Razorpay Key ID cannot be empty'),
+  body('razorpayKeySecret')
+    .optional()
+    .trim()
+    .notEmpty().withMessage('Razorpay Key Secret cannot be empty'),
+  body('isPaymentEnabled')
+    .optional()
+    .isBoolean().withMessage('isPaymentEnabled must be boolean'),
+  body('paymentMode')
+    .optional()
+    .isIn(PAYMENT_MODES).withMessage(`Payment mode must be one of: ${PAYMENT_MODES.join(', ')}`),
+];
+
+const updateReminderSettingsRules = [
+  body('enabled')
+    .optional()
+    .isBoolean().withMessage('enabled must be boolean'),
+  body('schedule')
+    .optional()
+    .isArray().withMessage('Schedule must be an array'),
+  body('schedule.*.label')
+    .optional()
+    .trim()
+    .notEmpty().withMessage('Schedule label is required'),
+  body('schedule.*.minutesBefore')
+    .optional()
+    .isInt({ min: 5, max: 10080 }).withMessage('minutesBefore must be between 5 and 10080'),
+  body('noShowBufferMinutes')
+    .optional()
+    .isInt({ min: 0, max: 120 }).withMessage('No-show buffer must be 0-120 minutes'),
+];
+
+module.exports = {
+  updateProfileRules,
+  updateWorkingHoursRules,
+  updateSettingsRules,
+  updatePaymentSettingsRules,
+  updateReminderSettingsRules,
+};

@@ -41,9 +41,17 @@ function buildSystemPrompt({ salon, services, offers }) {
         .join(', ')
     : 'Address not set';
 
+  const today = new Date().toLocaleDateString('en-IN', {
+    weekday: 'long',
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  });
+
   return `You are the WhatsApp booking assistant for "${salon.name}".
 You speak friendly Hinglish (Hindi + English mix). Keep messages short — 3-4 lines max.
 Use Indian date format (DD/MM/YYYY) and 12-hour time (e.g., 2:30 PM).
+TODAY'S DATE: ${today}. Always use this as reference for "today", "tomorrow", "next week", etc.
 
 SALON INFO:
   Name: ${salon.name}
@@ -68,7 +76,14 @@ RULES:
 - If you cannot help, use handoff_to_human to transfer to the salon owner.
 - Be warm, polite, and professional. Use emojis sparingly (1-2 per message).
 - When showing multiple options (services, time slots), use numbered lists.
-- Refer to prices in ₹ (Rupees).`;
+- Refer to prices in ₹ (Rupees).${salon.payment?.isPaymentEnabled ? `
+
+PAYMENT:
+- This salon has online payment enabled via Razorpay.
+- After booking, a payment link will be automatically generated and sent to the customer.
+- Payment is ${salon.payment.paymentMode === 'required' ? 'REQUIRED' : 'OPTIONAL'} for this salon.
+- ${salon.payment.paymentMode === 'required' ? 'Let the customer know they need to complete payment to confirm their appointment.' : 'Let the customer know they can pay online or at the salon.'}
+- Do NOT generate payment links yourself — the system handles this automatically.` : ''}`;
 }
 
 /**
@@ -125,7 +140,7 @@ const toolDefinitions = [
     function: {
       name: 'create_booking',
       description:
-        'Create a new appointment booking. Call ONLY after the customer has confirmed the service, date, time slot, and price. All details must be confirmed before calling this.',
+        'Create a new appointment booking. Call ONLY after the customer has confirmed the service, date, time slot, and price. All details must be confirmed before calling this. If the salon has payments enabled, a payment link will be included in the response.',
       parameters: {
         type: 'object',
         properties: {

@@ -19,6 +19,22 @@ export interface WhatsAppConfig {
   connectedAt?: string
 }
 
+export interface PaymentConfig {
+  razorpayKeyId?: string
+  isPaymentEnabled: boolean
+  paymentMode: 'optional' | 'required'
+}
+
+export interface ReminderScheduleItem {
+  label: string
+  minutesBefore: number
+}
+
+export interface ReminderConfig {
+  enabled: boolean
+  schedule: ReminderScheduleItem[]
+}
+
 export interface Salon {
   _id: string
   name: string
@@ -35,6 +51,9 @@ export interface Salon {
   holidays: string[]
   isActive: boolean
   whatsapp: WhatsAppConfig
+  payment: PaymentConfig
+  reminders: ReminderConfig
+  noShowBufferMinutes: number
   createdAt: string
   updatedAt: string
 }
@@ -96,6 +115,19 @@ export interface Customer {
 }
 
 // ── Appointment ──────────────────────────────────
+export type AppointmentPaymentStatus =
+  | 'pending' | 'paid' | 'failed' | 'refunded' | 'partially_refunded'
+
+export interface AppointmentPayment {
+  status: AppointmentPaymentStatus
+  razorpayOrderId?: string
+  razorpayPaymentId?: string
+  razorpayPaymentLinkId?: string
+  razorpayPaymentLinkUrl?: string
+  amount?: number
+  paidAt?: string
+}
+
 export type AppointmentStatus =
   | 'pending' | 'confirmed' | 'in-progress'
   | 'completed' | 'cancelled' | 'no-show'
@@ -117,6 +149,26 @@ export interface Appointment {
   notes?: string
   cancelReason?: string
   bookedVia: BookingChannel
+  payment?: AppointmentPayment
+  createdAt: string
+  updatedAt: string
+}
+
+export interface Payment {
+  _id: string
+  salonId: string
+  appointmentId: string | { _id: string; date: string; startTime: string; endTime: string }
+  customerId: string | { _id: string; name?: string; phone: string }
+  razorpayOrderId?: string
+  razorpayPaymentId?: string
+  razorpayPaymentLinkId?: string
+  amount: number
+  currency: string
+  status: AppointmentPaymentStatus
+  method?: string
+  paymentLinkUrl?: string
+  paidAt?: string
+  notes?: string
   createdAt: string
   updatedAt: string
 }

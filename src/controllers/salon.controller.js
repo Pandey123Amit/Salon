@@ -1,4 +1,5 @@
 const { Salon } = require('../models');
+const { encryptToken } = require('../services/whatsapp-crypto.service');
 const ApiResponse = require('../utils/ApiResponse');
 const asyncHandler = require('../utils/asyncHandler');
 
@@ -60,4 +61,60 @@ const updateSettings = asyncHandler(async (req, res) => {
   res.json(ApiResponse.success('Settings updated', { salon }));
 });
 
-module.exports = { getProfile, updateProfile, updateWorkingHours, updateSettings };
+// @desc    Update payment settings
+// @route   PUT /api/salon/payment-settings
+const updatePaymentSettings = asyncHandler(async (req, res) => {
+  const updates = {};
+
+  if (req.body.razorpayKeyId !== undefined) {
+    updates['payment.razorpayKeyId'] = req.body.razorpayKeyId;
+  }
+  if (req.body.razorpayKeySecret !== undefined) {
+    updates['payment.razorpayKeySecret'] = encryptToken(req.body.razorpayKeySecret);
+  }
+  if (req.body.isPaymentEnabled !== undefined) {
+    updates['payment.isPaymentEnabled'] = req.body.isPaymentEnabled;
+  }
+  if (req.body.paymentMode !== undefined) {
+    updates['payment.paymentMode'] = req.body.paymentMode;
+  }
+
+  const salon = await Salon.findByIdAndUpdate(req.salon._id, updates, {
+    new: true,
+    runValidators: true,
+  });
+
+  res.json(ApiResponse.success('Payment settings updated', { salon }));
+});
+
+// @desc    Update reminder settings
+// @route   PUT /api/salon/reminder-settings
+const updateReminderSettings = asyncHandler(async (req, res) => {
+  const updates = {};
+
+  if (req.body.enabled !== undefined) {
+    updates['reminders.enabled'] = req.body.enabled;
+  }
+  if (req.body.schedule !== undefined) {
+    updates['reminders.schedule'] = req.body.schedule;
+  }
+  if (req.body.noShowBufferMinutes !== undefined) {
+    updates.noShowBufferMinutes = req.body.noShowBufferMinutes;
+  }
+
+  const salon = await Salon.findByIdAndUpdate(req.salon._id, updates, {
+    new: true,
+    runValidators: true,
+  });
+
+  res.json(ApiResponse.success('Reminder settings updated', { salon }));
+});
+
+module.exports = {
+  getProfile,
+  updateProfile,
+  updateWorkingHours,
+  updateSettings,
+  updatePaymentSettings,
+  updateReminderSettings,
+};

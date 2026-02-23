@@ -26,11 +26,30 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { Plus, Calendar as CalendarIcon } from 'lucide-react'
+import { Plus, Calendar as CalendarIcon, CreditCard } from 'lucide-react'
 import { format } from 'date-fns'
-import type { AppointmentStatus } from '@/types'
+import type { AppointmentStatus, AppointmentPaymentStatus } from '@/types'
+import { useCreatePaymentLink } from '@/hooks/use-payments'
 
 const STATUSES: AppointmentStatus[] = ['pending', 'confirmed', 'in-progress', 'completed', 'cancelled', 'no-show']
+
+const PAYMENT_BADGE_COLORS: Record<string, string> = {
+  pending: 'bg-yellow-100 text-yellow-800',
+  paid: 'bg-green-100 text-green-800',
+  failed: 'bg-red-100 text-red-800',
+  refunded: 'bg-gray-100 text-gray-800',
+  partially_refunded: 'bg-orange-100 text-orange-800',
+}
+
+function PaymentBadge({ status }: { status?: AppointmentPaymentStatus }) {
+  if (!status) return <span className="text-muted-foreground text-xs">-</span>
+  const colors = PAYMENT_BADGE_COLORS[status] || 'bg-gray-100 text-gray-800'
+  return (
+    <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${colors}`}>
+      {status.replace('_', ' ')}
+    </span>
+  )
+}
 const TRANSITIONS: Record<string, string[]> = {
   pending: ['confirmed', 'cancelled', 'no-show'],
   confirmed: ['in-progress', 'cancelled', 'no-show'],
@@ -51,6 +70,7 @@ export default function AppointmentsPage() {
 
   const { data: appointments, isLoading } = useAppointments(params)
   const updateMutation = useUpdateAppointment()
+  const paymentLinkMutation = useCreatePaymentLink()
   const isMobile = useMobile()
 
   function handleStatusChange(id: string, status: string) {
@@ -131,7 +151,20 @@ export default function AppointmentsPage() {
                       {appt.staffId && 'name' in appt.staffId && (
                         <span className="text-muted-foreground">{appt.staffId.name}</span>
                       )}
+                      <PaymentBadge status={appt.payment?.status} />
                     </div>
+                    {appt.payment?.status === 'pending' && ['pending', 'confirmed'].includes(appt.status) && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="mt-2"
+                        onClick={() => paymentLinkMutation.mutate(appt._id)}
+                        disabled={paymentLinkMutation.isPending}
+                      >
+                        <CreditCard className="h-3 w-3 mr-1" />
+                        Send Payment Link
+                      </Button>
+                    )}
                     {TRANSITIONS[appt.status]?.length > 0 && (
                       <div className="flex gap-2 mt-3">
                         {TRANSITIONS[appt.status].map((next) => (
@@ -162,6 +195,7 @@ export default function AppointmentsPage() {
                     <TableHead>Service</TableHead>
                     <TableHead>Staff</TableHead>
                     <TableHead>Price</TableHead>
+                    <TableHead>Payment</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
@@ -184,6 +218,23 @@ export default function AppointmentsPage() {
                         {appt.staffId && 'name' in appt.staffId ? appt.staffId.name : '-'}
                       </TableCell>
                       <TableCell>₹{appt.price}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1">
+                          <PaymentBadge status={appt.payment?.status} />
+                          {appt.payment?.status === 'pending' && ['pending', 'confirmed'].includes(appt.status) && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-6 px-1"
+                              onClick={() => paymentLinkMutation.mutate(appt._id)}
+                              disabled={paymentLinkMutation.isPending}
+                              title="Send Payment Link"
+                            >
+                              <CreditCard className="h-3 w-3" />
+                            </Button>
+                          )}
+                        </div>
+                      </TableCell>
                       <TableCell>
                         <StatusBadge status={appt.status} />
                       </TableCell>

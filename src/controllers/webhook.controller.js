@@ -177,6 +177,56 @@ async function handleSingleMessage(salon, phoneNumberId, message, contacts) {
     status: 'sent',
     statusTimestamp: new Date(),
   });
+
+  // Send payment link as CTA URL button if present
+  if (result.paymentLink) {
+    try {
+      const paymentPayload = {
+        messaging_product: 'whatsapp',
+        recipient_type: 'individual',
+        to: senderPhone,
+        type: 'interactive',
+        interactive: {
+          type: 'cta_url',
+          body: {
+            text: result.paymentRequired
+              ? 'Payment karein apna appointment confirm karne ke liye:'
+              : 'Online payment karna chahein toh yahan se karein:',
+          },
+          action: {
+            name: 'cta_url',
+            parameters: {
+              display_text: 'Pay Now',
+              url: result.paymentLink,
+            },
+          },
+        },
+      };
+
+      const paymentApiResponse = await sendMessage(
+        phoneNumberId,
+        salon.whatsapp.accessToken,
+        paymentPayload
+      );
+
+      const paymentWamid = paymentApiResponse.messages?.[0]?.id;
+      await MessageLog.create({
+        salonId: salon._id,
+        wamid: paymentWamid,
+        direction: 'outbound',
+        customerPhone: normalizedPhone,
+        messageType: 'interactive',
+        content: `Payment link: ${result.paymentLink}`,
+        status: 'sent',
+        statusTimestamp: new Date(),
+      });
+    } catch (payErr) {
+      logger.error('Failed to send payment link message', {
+        error: payErr.message,
+        salonId: salon._id,
+      });
+    }
+  }
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────

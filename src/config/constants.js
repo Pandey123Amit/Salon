@@ -62,6 +62,35 @@ const CHAT_CONFIG = {
   sessionTimeoutMinutes: 30,
 };
 
+const PAYMENT_STATUSES = [
+  'pending',
+  'paid',
+  'failed',
+  'refunded',
+  'partially_refunded',
+];
+
+const APPOINTMENT_PAYMENT_STATUSES = [
+  'pending',
+  'paid',
+  'failed',
+  'refunded',
+  'partially_refunded',
+];
+
+const PAYMENT_MODES = ['optional', 'required'];
+
+const DEFAULT_REMINDER_SCHEDULE = [
+  { label: '24 hours before', minutesBefore: 1440 },
+  { label: '2 hours before', minutesBefore: 120 },
+];
+
+const CRON_SCHEDULES = {
+  reminders: '*/5 * * * *',   // every 5 minutes
+  noShow: '*/15 * * * *',     // every 15 minutes
+  cleanup: '0 3 * * *',       // daily at 3am
+};
+
 module.exports = {
   SERVICE_CATEGORIES,
   APPOINTMENT_STATUSES,
@@ -72,4 +101,9 @@ module.exports = {
   SLOT_DURATIONS,
   CONVERSATION_STATES,
   CHAT_CONFIG,
+  PAYMENT_STATUSES,
+  APPOINTMENT_PAYMENT_STATUSES,
+  PAYMENT_MODES,
+  DEFAULT_REMINDER_SCHEDULE,
+  CRON_SCHEDULES,
 };

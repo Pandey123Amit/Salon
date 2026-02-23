@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { APPOINTMENT_STATUSES } = require('../config/constants');
+const { APPOINTMENT_STATUSES, APPOINTMENT_PAYMENT_STATUSES } = require('../config/constants');
 
 const appointmentSchema = new mongoose.Schema(
   {
@@ -40,6 +40,26 @@ const appointmentSchema = new mongoose.Schema(
       enum: ['whatsapp', 'dashboard', 'walkin'],
       default: 'whatsapp',
     },
+    payment: {
+      status: {
+        type: String,
+        enum: APPOINTMENT_PAYMENT_STATUSES,
+        default: 'pending',
+      },
+      razorpayOrderId: { type: String },
+      razorpayPaymentId: { type: String },
+      razorpayPaymentLinkId: { type: String },
+      razorpayPaymentLinkUrl: { type: String },
+      amount: { type: Number },  // paise
+      paidAt: { type: Date },
+    },
+    remindersSent: [
+      {
+        minutesBefore: { type: Number, required: true },
+        sentAt: { type: Date, default: Date.now },
+        _id: false,
+      },
+    ],
   },
   {
     timestamps: true,
@@ -48,5 +68,6 @@ const appointmentSchema = new mongoose.Schema(
 
 appointmentSchema.index({ salonId: 1, date: 1, staffId: 1 });
 appointmentSchema.index({ customerId: 1 });
+appointmentSchema.index({ status: 1, date: 1 });
 
 module.exports = mongoose.model('Appointment', appointmentSchema);

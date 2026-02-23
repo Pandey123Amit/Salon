@@ -1,5 +1,5 @@
 const crypto = require('crypto');
-const { Salon, Service, Staff, Customer, Appointment, Offer, Conversation } = require('../src/models');
+const { Salon, Service, Staff, Customer, Appointment, Offer, Conversation, Payment } = require('../src/models');
 const { DAYS_OF_WEEK } = require('../src/config/constants');
 
 // ─── Default Test Data ────────────────────────────────────────────
@@ -197,6 +197,43 @@ function signPayload(body, secret) {
   return `sha256=${hmac}`;
 }
 
+/**
+ * Create a full test environment with payment enabled.
+ */
+async function createFullSetupWithPayment() {
+  const { salon, token, service, staff, customer } = await createFullSetup();
+
+  await Salon.findByIdAndUpdate(salon._id, {
+    'payment.isPaymentEnabled': true,
+    'payment.paymentMode': 'optional',
+  });
+
+  const updatedSalon = await Salon.findById(salon._id);
+  return { salon: updatedSalon, token, service, staff, customer };
+}
+
+/**
+ * Build a Razorpay webhook payload envelope.
+ */
+function buildRazorpayWebhookPayload(event, paymentData = {}) {
+  return {
+    event,
+    payload: {
+      payment_link: paymentData.paymentLink ? { entity: paymentData.paymentLink } : undefined,
+      payment: paymentData.payment ? { entity: paymentData.payment } : undefined,
+      refund: paymentData.refund ? { entity: paymentData.refund } : undefined,
+    },
+  };
+}
+
+/**
+ * HMAC-SHA256 sign for Razorpay webhook.
+ */
+function signRazorpayPayload(body, secret) {
+  const raw = typeof body === 'string' ? body : JSON.stringify(body);
+  return crypto.createHmac('sha256', secret).update(raw).digest('hex');
+}
+
 module.exports = {
   defaultSalonData,
   defaultServiceData,
@@ -209,8 +246,11 @@ module.exports = {
   createCustomer,
   createOffer,
   createFullSetup,
+  createFullSetupWithPayment,
   getNextWeekday,
   authHeader,
   buildWebhookPayload,
   signPayload,
+  buildRazorpayWebhookPayload,
+  signRazorpayPayload,
 };

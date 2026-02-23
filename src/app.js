@@ -10,6 +10,7 @@ const errorHandler = require('./middleware/errorHandler');
 const notFound = require('./middleware/notFound');
 const routes = require('./routes');
 const webhookRoutes = require('./routes/webhook.routes');
+const razorpayWebhookRoutes = require('./routes/razorpay-webhook.routes');
 const env = require('./config/env');
 
 const app = express();
@@ -30,6 +31,18 @@ app.use(
     },
   }),
   webhookRoutes
+);
+
+// Razorpay webhook — also needs raw body for signature verification
+app.use(
+  '/razorpay-webhook',
+  express.json({
+    limit: '10kb',
+    verify: (req, _res, buf) => {
+      req.rawBody = buf;
+    },
+  }),
+  razorpayWebhookRoutes
 );
 
 // Body parsing

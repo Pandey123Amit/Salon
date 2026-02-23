@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { queryKeys } from '@/lib/query-keys'
 import * as salonApi from '@/api/salon.api'
-import type { Salon } from '@/types'
+import type { Salon, ReminderScheduleItem } from '@/types'
 import { toast } from 'sonner'
 
 export function useSalon() {
@@ -46,6 +46,39 @@ export function useUpdateSlotSettings() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKeys.salon })
       toast.success('Slot settings updated')
+    },
+    onError: (err: Error) => toast.error(err.message),
+  })
+}
+
+export function useUpdatePaymentSettings() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (data: {
+      razorpayKeyId?: string
+      razorpayKeySecret?: string
+      isPaymentEnabled?: boolean
+      paymentMode?: 'optional' | 'required'
+    }) => salonApi.updatePaymentSettings(data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.salon })
+      toast.success('Payment settings updated')
+    },
+    onError: (err: Error) => toast.error(err.message),
+  })
+}
+
+export function useUpdateReminderSettings() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (data: {
+      enabled?: boolean
+      schedule?: ReminderScheduleItem[]
+      noShowBufferMinutes?: number
+    }) => salonApi.updateReminderSettings(data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.salon })
+      toast.success('Reminder settings updated')
     },
     onError: (err: Error) => toast.error(err.message),
   })

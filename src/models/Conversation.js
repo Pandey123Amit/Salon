@@ -67,6 +67,8 @@ const conversationSchema = new mongoose.Schema(
       totalTurns: { type: Number, default: 0 },
       bookingCompleted: { type: Boolean, default: false },
       handedOff: { type: Boolean, default: false },
+      paymentLink: { type: String },
+      paymentRequired: { type: Boolean, default: false },
     },
   },
   {

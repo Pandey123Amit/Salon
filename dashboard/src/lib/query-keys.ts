@@ -40,6 +40,13 @@ export const queryKeys = {
     customers: (params?: Record<string, string>) => ['analytics', 'customers', params] as const,
   },
 
+  // Payments
+  payments: {
+    all: ['payments'] as const,
+    list: (params?: Record<string, string>) => ['payments', 'list', params] as const,
+    byAppointment: (id: string) => ['payments', 'appointment', id] as const,
+  },
+
   // Salon settings
   salon: ['salon'] as const,
 }

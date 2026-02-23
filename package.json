@@ -28,7 +28,9 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.7.0",
     "morgan": "^1.10.0",
+    "node-cron": "^4.2.1",
     "openai": "^4.73.0",
+    "razorpay": "^2.9.6",
     "winston": "^3.14.2"
   },
   "devDependencies": {

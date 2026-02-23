@@ -29,6 +29,11 @@ module.exports = {
   whatsappEncryptionKey: process.env.WHATSAPP_ENCRYPTION_KEY || '',
   baseUrl: process.env.BASE_URL || '',
 
+  // Razorpay (optional — platform-level keys, salons can use their own)
+  razorpayKeyId: process.env.RAZORPAY_KEY_ID || '',
+  razorpayKeySecret: process.env.RAZORPAY_KEY_SECRET || '',
+  razorpayWebhookSecret: process.env.RAZORPAY_WEBHOOK_SECRET || '',
+
   isDev: (process.env.NODE_ENV || 'development') === 'development',
   isProd: process.env.NODE_ENV === 'production',
 };

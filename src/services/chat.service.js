@@ -2,6 +2,7 @@ const { Salon, Service, Staff, Appointment, Customer, Offer, Conversation } = re
 const { getAvailableSlots, minutesToTime } = require('./slot.service');
 const { buildSystemPrompt, chatCompletion } = require('./llm.service');
 const { formatForWhatsApp } = require('./whatsapp-formatter.service');
+const { createPaymentLink } = require('./payment.service');
 const { CHAT_CONFIG } = require('../config/constants');
 const ApiError = require('../utils/ApiError');
 const logger = require('../utils/logger');
@@ -155,7 +156,7 @@ async function executeToolCall(toolName, args, context) {
       };
       conversation.metadata.bookingCompleted = true;
 
-      return JSON.stringify({
+      const bookingResult = {
         success: true,
         appointmentId: appointment._id,
         service: service.name,
@@ -164,7 +165,30 @@ async function executeToolCall(toolName, args, context) {
         endTime: matchingSlot.endTime,
         staff: matchingSlot.staffName,
         price: service.price,
-      });
+      };
+
+      // Attempt to create payment link if payment is enabled
+      const salon = await Salon.findById(salonId).select('+payment.razorpayKeySecret');
+      if (salon?.payment?.isPaymentEnabled) {
+        try {
+          const customer = await Customer.findById(customerId);
+          const paymentResult = await createPaymentLink({ salon, appointment, customer });
+          bookingResult.paymentLink = paymentResult.paymentLinkUrl;
+          bookingResult.paymentRequired = salon.payment.paymentMode === 'required';
+
+          // Store payment link in conversation for later retrieval
+          conversation.metadata.paymentLink = paymentResult.paymentLinkUrl;
+          conversation.metadata.paymentRequired = bookingResult.paymentRequired;
+        } catch (payErr) {
+          logger.error('Payment link creation failed (booking still succeeded)', {
+            appointmentId: appointment._id,
+            error: payErr.message,
+          });
+          bookingResult.paymentLink = null;
+        }
+      }
+
+      return JSON.stringify(bookingResult);
     }
 
     case 'cancel_appointment': {
@@ -434,6 +458,8 @@ async function processMessage(salonId, phone, message) {
       phone: customer.phone,
       isNew: customer.totalVisits === 0,
     },
+    paymentLink: conversation.metadata?.paymentLink || null,
+    paymentRequired: conversation.metadata?.paymentRequired || false,
   };
 }
 

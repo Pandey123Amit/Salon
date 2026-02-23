@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const env = require('../config/env');
-const { DAYS_OF_WEEK, SLOT_DURATIONS } = require('../config/constants');
+const { DAYS_OF_WEEK, SLOT_DURATIONS, PAYMENT_MODES, DEFAULT_REMINDER_SCHEDULE } = require('../config/constants');
 
 const workingHourSchema = new mongoose.Schema(
   {
@@ -99,6 +99,36 @@ const salonSchema = new mongoose.Schema(
       isConnected: { type: Boolean, default: false },
       connectedAt: { type: Date },
     },
+
+    // Razorpay payment integration
+    payment: {
+      razorpayKeyId: { type: String },
+      razorpayKeySecret: { type: String, select: false },
+      isPaymentEnabled: { type: Boolean, default: false },
+      paymentMode: { type: String, enum: PAYMENT_MODES, default: 'optional' },
+    },
+
+    // Appointment reminder settings
+    reminders: {
+      enabled: { type: Boolean, default: true },
+      schedule: {
+        type: [
+          {
+            label: { type: String, required: true },
+            minutesBefore: { type: Number, required: true },
+            _id: false,
+          },
+        ],
+        default: () => DEFAULT_REMINDER_SCHEDULE.map((r) => ({ ...r })),
+      },
+    },
+
+    noShowBufferMinutes: {
+      type: Number,
+      default: 30,
+      min: 0,
+      max: 120,
+    },
   },
   {
     timestamps: true,
@@ -137,6 +167,9 @@ salonSchema.methods.toJSON = function () {
   if (obj.whatsapp) {
     delete obj.whatsapp.accessToken;
     delete obj.whatsapp.verifyToken;
+  }
+  if (obj.payment) {
+    delete obj.payment.razorpayKeySecret;
   }
   return obj;
 };
