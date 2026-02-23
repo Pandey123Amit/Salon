@@ -1,3 +1,4 @@
+const path = require('path');
 const express = require('express');
 const helmet = require('helmet');
 const cors = require('cors');
@@ -5,6 +6,7 @@ const morgan = require('morgan');
 const compression = require('compression');
 const hpp = require('hpp');
 const mongoSanitize = require('express-mongo-sanitize');
+const mongoose = require('mongoose');
 const { generalLimiter } = require('./middleware/rateLimiter');
 const errorHandler = require('./middleware/errorHandler');
 const notFound = require('./middleware/notFound');
@@ -15,11 +17,19 @@ const env = require('./config/env');
 
 const app = express();
 
+// Trust first proxy (nginx) — required for rate-limiter to see real IPs
+if (env.isProd) {
+  app.set('trust proxy', 1);
+}
+
 // Security headers
 app.use(helmet());
 
-// CORS
-app.use(cors());
+// CORS — restrict origin in production
+app.use(cors({
+  origin: env.isProd ? (env.baseUrl || true) : true,
+  credentials: true,
+}));
 
 // Webhook routes — mounted BEFORE global JSON parser to capture raw body for signature verification
 app.use(
@@ -66,13 +76,33 @@ if (env.isDev) {
 // Rate limiting
 app.use('/api', generalLimiter);
 
-// Health check
+// Health check — returns 503 when DB is disconnected (used by Docker HEALTHCHECK)
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  const dbState = mongoose.connection.readyState;
+  const isHealthy = dbState === 1;
+  res.status(isHealthy ? 200 : 503).json({
+    status: isHealthy ? 'ok' : 'degraded',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    mongodb: isHealthy ? 'connected' : 'disconnected',
+  });
 });
 
 // API routes
 app.use('/api', routes);
+
+// Serve dashboard SPA in production
+if (env.isProd) {
+  const dashboardPath = path.join(__dirname, '../dashboard/dist');
+  app.use(express.static(dashboardPath));
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api') || req.path.startsWith('/webhook') ||
+        req.path.startsWith('/razorpay-webhook') || req.path === '/health') {
+      return next();
+    }
+    res.sendFile(path.join(dashboardPath, 'index.html'));
+  });
+}
 
 // 404 handler
 app.use(notFound);

@@ -1,0 +1,12 @@
+node_modules
+dashboard/node_modules
+dashboard/dist
+logs
+.env
+.git
+coverage
+tests
+scripts
+*.md
+.DS_Store
+.github
