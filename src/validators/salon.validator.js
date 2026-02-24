@@ -58,6 +58,10 @@ const updatePaymentSettingsRules = [
     .optional()
     .trim()
     .notEmpty().withMessage('Razorpay Key Secret cannot be empty'),
+  body('razorpayWebhookSecret')
+    .optional()
+    .trim()
+    .notEmpty().withMessage('Razorpay Webhook Secret cannot be empty'),
   body('isPaymentEnabled')
     .optional()
     .isBoolean().withMessage('isPaymentEnabled must be boolean'),

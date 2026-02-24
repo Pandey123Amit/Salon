@@ -289,6 +289,7 @@ function PaymentsTab({ payment }: { payment: { razorpayKeyId?: string; isPayment
   const updateMutation = useUpdatePaymentSettings()
   const [keyId, setKeyId] = useState(payment?.razorpayKeyId || '')
   const [keySecret, setKeySecret] = useState('')
+  const [webhookSecret, setWebhookSecret] = useState('')
   const [enabled, setEnabled] = useState(payment?.isPaymentEnabled || false)
   const [mode, setMode] = useState(payment?.paymentMode || 'optional')
 
@@ -326,6 +327,19 @@ function PaymentsTab({ payment }: { payment: { razorpayKeyId?: string; isPayment
           </div>
 
           <div className="space-y-2">
+            <Label>Razorpay Webhook Secret</Label>
+            <Input
+              type="password"
+              value={webhookSecret}
+              onChange={(e) => setWebhookSecret(e.target.value)}
+              placeholder="Enter webhook secret to update"
+            />
+            <p className="text-xs text-muted-foreground">
+              Found in Razorpay Dashboard → Settings → Webhooks. Leave blank to keep existing.
+            </p>
+          </div>
+
+          <div className="space-y-2">
             <Label>Payment Mode</Label>
             <Select value={mode} onValueChange={(v) => setMode(v as 'optional' | 'required')}>
               <SelectTrigger>
@@ -346,6 +360,7 @@ function PaymentsTab({ payment }: { payment: { razorpayKeyId?: string; isPayment
               }
               if (keyId) data.razorpayKeyId = keyId
               if (keySecret) data.razorpayKeySecret = keySecret
+              if (webhookSecret) data.razorpayWebhookSecret = webhookSecret
               updateMutation.mutate(data as Parameters<typeof updateMutation.mutate>[0])
             }}
             disabled={updateMutation.isPending}

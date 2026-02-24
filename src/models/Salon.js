@@ -104,6 +104,7 @@ const salonSchema = new mongoose.Schema(
     payment: {
       razorpayKeyId: { type: String },
       razorpayKeySecret: { type: String, select: false },
+      razorpayWebhookSecret: { type: String, select: false },
       isPaymentEnabled: { type: Boolean, default: false },
       paymentMode: { type: String, enum: PAYMENT_MODES, default: 'optional' },
     },
@@ -170,6 +171,7 @@ salonSchema.methods.toJSON = function () {
   }
   if (obj.payment) {
     delete obj.payment.razorpayKeySecret;
+    delete obj.payment.razorpayWebhookSecret;
   }
   return obj;
 };

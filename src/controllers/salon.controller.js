@@ -72,6 +72,9 @@ const updatePaymentSettings = asyncHandler(async (req, res) => {
   if (req.body.razorpayKeySecret !== undefined) {
     updates['payment.razorpayKeySecret'] = encryptToken(req.body.razorpayKeySecret);
   }
+  if (req.body.razorpayWebhookSecret !== undefined) {
+    updates['payment.razorpayWebhookSecret'] = encryptToken(req.body.razorpayWebhookSecret);
+  }
   if (req.body.isPaymentEnabled !== undefined) {
     updates['payment.isPaymentEnabled'] = req.body.isPaymentEnabled;
   }
